@@ -2,7 +2,8 @@ name: Keep Alive
 
 on:
   schedule:
-    - cron: '0 12 * * *'  # chaque jour à midi
+    - cron: '0 12 * * *'
+  workflow_dispatch:
 
 jobs:
   keep-alive:
