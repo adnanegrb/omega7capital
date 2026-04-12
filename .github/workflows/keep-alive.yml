@@ -1,0 +1,19 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # chaque jour à midi
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Commit vide
+        run: |
+          git config user.email "tonemail@gmail.com"
+          git config user.name "tonnom"
+          echo "$(date)" >> keep-alive.txt
+          git add .
+          git commit -m "chore: keep alive"
+          git push
