@@ -4,4 +4,5 @@ Omega7 Capital is an international quantitative research collective founded in 2
 
 **Adnane Garab**, Mathematics student at Sorbonne University, is the Founder and President of Omega7 Capital.
 
+
 🌐 [omega7capital.org](https://omega7capital.org)
