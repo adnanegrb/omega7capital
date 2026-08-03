@@ -171,7 +171,7 @@
       <text x="83" y="118" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13" font-weight="500" fill="#111">Data</text>
       <text x="83" y="135" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#888">500 equities</text>
       <text x="83" y="150" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#888">2013 – 2024</text>
-      <line x1="142" y1="130" x2="172" y2="130" stroke="#bbb" stroke-width="1.5" marker-end="url(#arr)"/>
+      
 
       <!-- Step 2: 4 tests -->
       <rect x="174" y="36" width="136" height="42" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="1.2"/>
@@ -190,7 +190,7 @@
       <text x="242" y="199" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="12.5" fill="#111">Jarque-Bera</text>
       <text x="242" y="214" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10.5" fill="#888">normality · skew + kurt.</text>
 
-      <!-- arrows from Data to tests -->
+      <!-- arrows from Data to each of the 4 tests -->
       <g stroke="#bbb" stroke-width="1.2" fill="none">
         <path d="M142 130 C158 130 166 57 173 57"/>
         <path d="M142 130 C158 130 166 105 173 105"/>
@@ -221,14 +221,14 @@
 
       <!-- step labels -->
       <g font-family="'Crimson Pro',serif" font-size="11" fill="#bbb" letter-spacing="0.06em" text-anchor="middle">
-        <text x="83"  y="192">01 DATA</text>
-        <text x="242" y="238">02 FOUR TESTS</text>
-        <text x="406" y="192" fill="#D85A30">03 SCORE</text>
-        <text x="562" y="192">04 CORRECTION</text>
+        <text x="83"  y="192">1 DATA</text>
+        <text x="242" y="238">2 TESTS</text>
+        <text x="406" y="192" fill="#D85A30">3 SCORE</text>
+        <text x="562" y="192">4 CORRECTION</text>
       </g>
     </svg>
   </div>
-  <figcaption><strong>Figure 1.</strong> The analysis pipeline. Each of the 500 return series passes through four complementary statistical tests. The three independence tests (Ljung-Box, variance ratio, runs test) are combined into a single randomness score. A Benjamini-Hochberg correction then controls the false discovery rate across 500 simultaneous comparisons.</figcaption>
+  <figcaption><strong>Figure 1.</strong> The analysis pipeline. Each of the 500 return series passes through four complementary statistical tests. The three independence tests are combined into a single randomness score per stock. A Benjamini-Hochberg correction controls the false discovery rate across 500 simultaneous comparisons.</figcaption>
 </figure>
 
 <h2>Results</h2>
@@ -307,7 +307,7 @@
 
 <h3>Departures cluster by sector</h3>
 
-<p>When we group the 152 non-random stocks by GICS sector, the rejections are clearly uneven. Sectors with smaller average market capitalisation, lower analyst coverage, and thinner liquidity — real estate, utilities, materials — show the highest rejection rates. Highly liquid, heavily traded sectors such as information technology and large-cap financials are closest to the random-walk benchmark. This is consistent with the <a href="https://www.jstor.org/stable/2328113" class="external" target="_blank">limits-to-arbitrage framework (Shleifer and Vishny, 1997)</a>: predictability survives where the frictions of exploiting it are highest.</p>
+<p>When we group the 152 non-random stocks by GICS sector, the rejections are clearly uneven. Sectors with smaller average market capitalisation, lower analyst coverage, and thinner liquidity (real estate, utilities, materials) show the highest rejection rates. Highly liquid, heavily traded sectors such as information technology and large-cap financials are closest to the random-walk benchmark. This is consistent with the <a href="https://www.jstor.org/stable/2328113" class="external" target="_blank">limits-to-arbitrage framework (Shleifer and Vishny, 1997)</a>: predictability survives where the frictions of exploiting it are highest.</p>
 
 <!-- FIGURE 3: SECTOR BAR -->
 <figure>
@@ -368,7 +368,7 @@
       </g>
     </svg>
   </div>
-  <figcaption><strong>Figure 3.</strong> Share of stocks within each GICS sector that reject the random walk null after false-discovery correction. Sector sample sizes vary: real estate and utilities are represented by fewer names in a large-cap universe, so their rejection rates carry wider confidence intervals than the chart conveys. The ordering is consistent with the limits-to-arbitrage prediction.</figcaption>
+  <figcaption><strong>Figure 3.</strong> Share of stocks within each GICS sector that reject the random walk null after false-discovery correction. Sector sample sizes vary; real estate and utilities are represented by fewer names in a large-cap universe, so their rejection rates carry wider confidence intervals. The ordering is consistent with the limits-to-arbitrage prediction.</figcaption>
 </figure>
 
 <h3>Autocorrelation is weak, short-horizon, and inconsistent in sign</h3>
@@ -438,12 +438,12 @@
       </g>
     </svg>
   </div>
-  <figcaption><strong>Figure 4.</strong> Average autocorrelation \(\hat{\rho}(k)\) by lag for the three groups of stocks. The shaded band marks the approximate 95% confidence region under \(H_0\). Both departing groups show signal only at lags 1 and 2, reverting to the band by lag 4 or 5. The vertical scale makes clear that even the largest deviations are small in absolute terms: \(|\hat{\rho}(1)| \leq 0.08\) on average.</figcaption>
+  <figcaption><strong>Figure 4.</strong> Average autocorrelation by lag for the three groups of stocks. The shaded band marks the approximate 95% confidence region under the random walk null. Both departing groups show signal only at lags 1 and 2, reverting to the band by lag 4 or 5. Even the largest average deviations are small in absolute terms, not exceeding 0.08.</figcaption>
 </figure>
 
 <h3>Volatility is highly predictable even where returns are not</h3>
 
-<p>The clearest and most robust departure from random-walk behaviour appears not in the returns themselves but in their squared values. Volatility clustering — the tendency of large moves to follow large moves — is present in essentially every stock regardless of whether its returns reject the independence null. Formally, while \(\hat{\rho}(k) \approx 0\) for most stocks, the autocorrelation of squared returns \(\hat{\rho}_{r^2}(k)\) is significantly positive across the universe, a signature of GARCH-type conditional heteroskedasticity (<a href="https://www.jstor.org/stable/1912773" class="external" target="_blank">Engle, 1982</a>):</p>
+<p>The clearest and most robust departure from random-walk behaviour appears not in the returns themselves but in their squared values. Volatility clustering, the tendency of large moves to follow large moves, is present in essentially every stock regardless of whether its returns reject the independence null. Formally, while \(\hat{\rho}(k) \approx 0\) for most stocks, the autocorrelation of squared returns \(\hat{\rho}_{r^2}(k)\) is significantly positive across the universe, a signature of GARCH-type conditional heteroskedasticity (<a href="https://www.jstor.org/stable/1912773" class="external" target="_blank">Engle, 1982</a>):</p>
 
 \[
   \sigma_t^2 = \omega + \sum_{i=1}^{p} \alpha_i\, \varepsilon_{t-i}^2 + \sum_{j=1}^{q} \beta_j\, \sigma_{t-j}^2
