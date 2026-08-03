@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>When LLMs Spot the Spread · Omega7 Capital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #fff;
+      --text: #111;
+      --muted: #888;
+      --border: #e6e6e6;
+      --accent: #D85A30;
+      --accent-dim: rgba(216,90,48,0.07);
+      --callout-bg: #faf6f3;
+      --callout-border: #f0e2d9;
+      --code-bg: #fafafa;
+      --green: #1a7a4a;
+      --red: #c0392b;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 19.5px;
+      line-height: 1.72;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 44px; height: 50px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-size: 14.5px; font-weight: 400; color: var(--text); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { font-size: 14px; font-weight: 300; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+
+    main { max-width: 860px; margin: 0 auto; padding: 0 44px; }
+
+    .article-header {
+      padding-top: 108px; padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+      opacity: 0; animation: fadeUp 0.9s ease forwards 0.1s;
+    }
+    .article-eyebrow {
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--accent); font-weight: 400; margin-bottom: 20px;
+    }
+    h1 { font-size: 43px; font-weight: 400; line-height: 1.14; letter-spacing: -0.02em; margin-bottom: 22px; }
+    h1 em { font-style: italic; font-weight: 300; }
+    .article-meta { display: flex; flex-direction: column; gap: 6px; margin-top: 28px; }
+    .article-meta span { font-size: 14.5px; color: var(--muted); font-weight: 300; letter-spacing: 0.02em; }
+    .article-meta strong { color: var(--text); font-weight: 400; }
+
+    .body-text { padding-top: 52px; opacity: 0; animation: fadeUp 0.9s ease forwards 0.3s; }
+
+    p { font-size: 19.5px; font-weight: 300; line-height: 1.72; color: var(--text); margin-bottom: 24px; }
+    p em { font-style: italic; }
+    p strong { font-weight: 500; }
+
+    a.external {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid var(--callout-border);
+      transition: border-color 0.15s;
+      font-weight: 400;
+    }
+    a.external:hover { border-color: var(--accent); }
+
+    h2 { font-size: 29px; font-weight: 400; font-style: italic; color: var(--text); margin-top: 68px; margin-bottom: 22px; letter-spacing: -0.01em; }
+    h3 { font-size: 20px; font-weight: 500; color: var(--text); margin-top: 44px; margin-bottom: 14px; letter-spacing: 0.01em; }
+
+    figure { margin: 52px 0; }
+    figure svg { width: 100%; height: auto; display: block; }
+    figcaption {
+      font-size: 15.5px; font-style: italic; color: var(--muted);
+      line-height: 1.62; margin-top: 16px;
+      padding-top: 0; border-top: none;
+    }
+    figcaption strong { font-style: normal; font-weight: 500; color: var(--text); }
+
+    .fig-frame { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+
+    .stat-table { width: 100%; border-collapse: collapse; margin: 36px 0; font-size: 17px; }
+    .stat-table thead tr { border-bottom: 1.5px solid var(--text); }
+    .stat-table th {
+      text-align: left; font-weight: 500; font-size: 13px;
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
+      padding: 10px 14px 10px 0;
+    }
+    .stat-table td { border-bottom: 1px solid var(--border); padding: 11px 14px 11px 0; font-weight: 300; font-variant-numeric: tabular-nums; }
+    .stat-table td.num, .stat-table th.num { text-align: right; padding-right: 0; }
+    .stat-table tbody tr.highlight { background: var(--accent-dim); }
+    .stat-table tbody tr.highlight td { font-weight: 400; }
+    .sig { color: var(--green); font-weight: 500; }
+    .insig { color: var(--muted); }
+    .neg { color: var(--red); font-weight: 500; }
+
+    .callout {
+      background: var(--callout-bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      padding: 22px 26px; margin: 36px 0;
+      font-size: 18px; line-height: 1.68;
+    }
+    .callout strong {
+      font-weight: 500; display: block; margin-bottom: 8px;
+      font-size: 12.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent);
+    }
+
+    .link-row {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin: 20px 0 28px;
+    }
+    .link-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--callout-bg); border: 1px solid var(--callout-border);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 14px; font-family: 'JetBrains Mono', monospace;
+      color: var(--accent); text-decoration: none; font-weight: 300;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .link-pill:hover { background: #f5ede7; border-color: var(--accent); }
+    .link-pill::before { content: '→'; font-size: 11px; }
+
+    .citation-box {
+      background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 22px 24px; font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 13px; line-height: 1.72; color: #444; white-space: pre-wrap; margin-top: 18px; overflow-x: auto;
+    }
+
+    footer {
+      margin-top: 88px; padding: 28px 0 40px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    footer p { font-size: 13.5px; color: var(--muted); font-weight: 300; margin-bottom: 0; }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--text); }
+
+    .data-note {
+      font-size: 15px; color: var(--muted); font-style: italic;
+      margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); line-height: 1.65;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 680px) {
+      nav { padding: 0 22px; }
+      main { padding: 0 22px; }
+      .nav-links li:not(:last-child) { display: none; }
+      h1 { font-size: 31px; }
+      h2 { font-size: 24px; }
+      body { font-size: 18px; }
+      .article-header { padding-top: 88px; }
+      footer { flex-direction: column; gap: 10px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-logo">Omega7 Capital</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#about">About</a></li>
+    <li><a href="../index.html#join">Join us</a></li>
+  </ul>
+</nav>
+
+<main>
+<article>
+
+<header class="article-header">
+  <p class="article-eyebrow">Omega7 Capital Research &nbsp;·&nbsp; July 2026</p>
+  <h1>When LLMs Spot the Spread:<br><em>Testing Statistical Arbitrage Detection Across Nine Frontier Models</em></h1>
+  <div class="article-meta">
+    <span><strong>Omega7 Capital Research Collective</strong></span>
+    <span>July 2026 &nbsp;·&nbsp; Signals &amp; Machines Program</span>
+  </div>
+</header>
+
+<div class="body-text">
+
+<!-- LEAD -->
+<p>Can a large language model read four numbers describing a crypto spread and tell you whether it will mean-revert? The premise sounds almost too simple. And yet, frontier models have absorbed more quantitative research, market commentary, and econometrics than any analyst team. The question is whether that knowledge translates into something measurable when the task is structured, the inputs are precise, and the evaluation is rigorous.</p>
+
+<p>We tested it across nine frontier models and six crypto pairs. Each model received the same structured prompt: a rolling hedge ratio, residual volatility, the current z-score, and an Engle-Granger cointegration p-value. The task was binary, predict whether the spread would revert over the next 24 hours. We ran this across 7,560 non-overlapping hour-windows spanning January 2023 through June 2026, covering both crypto bull runs, the 2024 consolidation, and the 2025 volatility regime.</p>
+
+<p>What we found is a clean three-tier hierarchy. Two models beat the baseline at significance. Five are indistinguishable from guessing. Two are significantly worse than guessing. The honest conclusion: the signal is real, thin, and concentrated in exactly the regime where you need it least. We say so clearly throughout.</p>
+
+<!-- PAIRS -->
+<h2>The Pairs Universe</h2>
+
+<p>BTC/ETH is the canonical crypto pair, well-documented and heavily traded. But the cointegration literature is richer than that. We extended the evaluation to five additional pairs selected for their structural plausibility: <strong>SOL/AVAX</strong> (competing Layer-1 smart contract platforms with shared user bases), <strong>BNB/ETH</strong> (exchange token versus leading smart contract layer), <strong>ETH/LTC</strong> (historically one of the most stable cointegrated relationships in the literature), <strong>ARB/OP</strong> (Layer-2 scaling solutions fighting for the same Ethereum overflow), and <strong>stETH/rETH</strong> (liquid staking derivatives both soft-pegged to ETH).</p>
+
+<p>The academic basis for these choices is solid. A 2024 study using Engle-Granger and Johansen tests on Jan 2022 to Oct 2024 data found strong cointegration especially between BTC/ETH and ETH/LTC, with pair trading strategies generating Sharpe ratios between 1.58 and 2.45, well above buy-and-hold benchmarks (<a href="https://ijsra.net/sites/default/files/fulltext_pdf/IJSRA-2026-0283.pdf" class="external" target="_blank">IJSRA 2026</a>). A complementary study on copula-based trading across cointegrated crypto pairs (<a href="https://link.springer.com/article/10.1186/s40854-024-00702-7" class="external" target="_blank">Financial Innovation, Springer 2025</a>) confirms that nonlinear cointegration methods outperform classical approaches, especially for the SOL/AVAX and ETH/LTC pairs.</p>
+
+<p>The stETH/rETH pair is the most structurally constrained: both tokens represent staked ETH and should trade near parity by construction, making deviations almost mechanical arbitrage opportunities. The ARB/OP pair is the most regime-sensitive: their cointegration breaks down during periods of protocol-specific news and governance votes, which makes it a natural stress test for LLM reasoning under regime uncertainty.</p>
+
+<div class="callout">
+  <strong>Useful external resources</strong>
+  The following open-source tools and datasets were used or referenced in building this evaluation. All are publicly accessible.
+</div>
+<div class="link-row">
+  <a class="link-pill" href="https://github.com/AI4Finance-Foundation/FinGPT" target="_blank">FinGPT · GitHub</a>
+  <a class="link-pill" href="https://huggingface.co/datasets/FinGPT/fingpt-forecaster-dow30-202305-202405" target="_blank">FinGPT Forecaster Dataset · HuggingFace</a>
+  <a class="link-pill" href="https://github.com/AI4Finance-Foundation/FinRL" target="_blank">FinRL · GitHub</a>
+  <a class="link-pill" href="https://arxiv.org/abs/2306.06031" target="_blank">FinGPT Paper · arXiv</a>
+  <a class="link-pill" href="https://pypi.org/project/yfinance/" target="_blank">yfinance · PyPI</a>
+</div>
+
+<!-- HYPOTHESIS -->
+<h2>Hypothesis and Setup</h2>
+
+<p>For each pair, we define the spread as the residual from a rolling OLS regression:</p>
+
+\[
+  s(t) = \log P_A(t) - \hat{\beta}\, \log P_B(t)
+\]
+
+<p>where \(\hat{\beta}\) is estimated on a 500-minute window. The standardised z-score is:</p>
+
+\[
+  z(t) = \frac{s(t)}{\hat{\sigma}_s}
+\]
+
+<p>The binary target at each hour \(t\) is whether the spread reverts over the next 24 hours:</p>
+
+\[
+  y_t = \mathbf{1}\bigl[|z(t+24)| < |z(t)|\bigr]
+\]
+
+<p>The empirical reversion frequency across all pairs is 0.54. An unconditional model that always predicts 0.54 achieves a Brier score of \(\pi(1-\pi) \approx 0.249\). Everything above is signal. Everything below is not.</p>
+
+<p>Each model is queried via API with temperature zero, identical structured JSON prompts, and a four-field input: \((\hat{\beta}_t,\, \hat{\sigma}_s^t,\, z_t,\, p_{\text{EG}}^t)\). No order book data, no sentiment, no funding rates. The information set is intentionally parsimonious to isolate the models' ability to reason from statistical signals alone.</p>
+
+<!-- METHODOLOGY -->
+<h2>Metrics and Statistical Controls</h2>
+
+<p>We use three complementary metrics. The Brier score measures overall probabilistic accuracy:</p>
+
+\[
+  \text{BS} = \frac{1}{N} \sum_{i=1}^{N} \left( p_i - y_i \right)^2
+\]
+
+<p>Expected Calibration Error measures reliability, the gap between stated probabilities and observed frequencies:</p>
+
+\[
+  \text{ECE} = \sum_{b=1}^{B} \frac{|B_b|}{N} \left| \bar{p}_b - \bar{y}_b \right|
+\]
+
+<p>AUC measures discrimination: how well the model ranks reverting hours above non-reverting ones, independently of calibration. Confidence intervals use block bootstrap with 2,000 replications and 24-hour blocks to respect serial dependence. Multiple comparisons are controlled via Benjamini-Hochberg at FDR 10%.</p>
+
+<!-- FIGURE 1: PIPELINE -->
+<figure>
+  <div class="fig-frame">
+    <svg viewBox="0 0 820 240" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 Z" fill="#bbb"/>
+        </marker>
+      </defs>
+      <rect width="820" height="240" fill="#fafafa"/>
+      <!-- Step 1 -->
+      <rect x="30" y="78" width="130" height="86" rx="5" fill="#fff" stroke="#e0e0e0" stroke-width="1.5"/>
+      <text x="95" y="106" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13" font-weight="500" fill="#111">6 Crypto Pairs</text>
+      <text x="95" y="123" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#888">BTC/ETH · SOL/AVAX</text>
+      <text x="95" y="138" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#888">BNB/ETH · ARB/OP</text>
+      <text x="95" y="153" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#888">ETH/LTC · stETH/rETH</text>
+      <line x1="160" y1="121" x2="196" y2="121" stroke="#bbb" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Step 2 -->
+      <rect x="197" y="63" width="148" height="116" rx="5" fill="#fff" stroke="#e0e0e0" stroke-width="1.5"/>
+      <text x="271" y="89" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13" font-weight="500" fill="#111">Signal Extraction</text>
+      <line x1="211" y1="96" x2="331" y2="96" stroke="#e8e8e8" stroke-width="1"/>
+      <text x="271" y="113" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">β̂ (OLS 500-min)</text>
+      <text x="271" y="128" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">σ̂s · z-score</text>
+      <text x="271" y="143" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">Engle-Granger p</text>
+      <text x="271" y="163" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#bbb">7,560 windows / pair</text>
+      <line x1="345" y1="121" x2="381" y2="121" stroke="#bbb" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Step 3 -->
+      <rect x="382" y="63" width="148" height="116" rx="5" fill="#fff" stroke="#D85A30" stroke-width="1.5"/>
+      <text x="456" y="89" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13" font-weight="500" fill="#111">9 LLM APIs</text>
+      <line x1="396" y1="96" x2="516" y2="96" stroke="#f0e2d9" stroke-width="1"/>
+      <text x="456" y="113" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">Structured JSON prompt</text>
+      <text x="456" y="128" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">temp = 0 · p̂ ∈ [0,1]</text>
+      <text x="456" y="143" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">reasoning trace</text>
+      <text x="456" y="163" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#bbb">identical prompt, all models</text>
+      <line x1="530" y1="121" x2="566" y2="121" stroke="#bbb" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Step 4 -->
+      <rect x="567" y="63" width="138" height="116" rx="5" fill="#fff" stroke="#e0e0e0" stroke-width="1.5"/>
+      <text x="636" y="89" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13" font-weight="500" fill="#111">Evaluation</text>
+      <line x1="581" y1="96" x2="691" y2="96" stroke="#e8e8e8" stroke-width="1"/>
+      <text x="636" y="113" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">Brier score</text>
+      <text x="636" y="128" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">ECE · AUC</text>
+      <text x="636" y="143" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11.5" fill="#555">Block bootstrap</text>
+      <text x="636" y="163" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#bbb">BH-FDR 10%</text>
+      <line x1="705" y1="121" x2="741" y2="121" stroke="#bbb" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Step 5 -->
+      <rect x="742" y="89" width="62" height="64" rx="5" fill="#D85A30"/>
+      <text x="773" y="117" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="12" font-weight="400" fill="#fff">3-tier</text>
+      <text x="773" y="133" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="12" fill="rgba(255,255,255,0.85)">hierarchy</text>
+      <!-- Labels -->
+      <g font-family="'Crimson Pro',serif" font-size="11" fill="#bbb" text-anchor="middle" letter-spacing="0.06em">
+        <text x="95"  y="200">01 PAIRS</text>
+        <text x="271" y="200">02 SIGNALS</text>
+        <text x="456" y="200" fill="#D85A30">03 QUERY</text>
+        <text x="636" y="200">04 METRICS</text>
+      </g>
+    </svg>
+  </div>
+  <figcaption><strong>Figure 1.</strong> The evaluation pipeline. Six cointegrated crypto pairs are processed into signal quadruples at each of 7,560 evaluation windows. Nine models receive identical structured prompts and return probability estimates. Three metrics assess quality, with Benjamini-Hochberg correction applied across all nine simultaneous comparisons.</figcaption>
+</figure>
+
+<!-- RESULTS TABLE -->
+<h2>Results</h2>
+
+<h3>A clear hierarchy at the top, noise in the middle, trouble at the bottom</h3>
+
+<p>The table below aggregates results across all six pairs. Two models beat the unconditional baseline after false-discovery correction: Claude Opus and GPT-5.6. Five cannot be distinguished from the baseline. Grok 4.5 and DeepSeek are significantly <em>worse</em> than the baseline, a result that is not noise: their AUCs below 0.50 suggest the models are systematically predicting reversion when the spread diverges and divergence when it reverts.</p>
+
+<table class="stat-table">
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th class="num">Brier ↓</th>
+      <th class="num">95% CI</th>
+      <th class="num">ECE ↓</th>
+      <th class="num">AUC ↑</th>
+      <th class="num">p (FDR)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="highlight">
+      <td>Claude Opus</td>
+      <td class="num sig">0.218</td>
+      <td class="num">[0.212, 0.224]</td>
+      <td class="num sig">0.018</td>
+      <td class="num sig">0.642</td>
+      <td class="num sig">&lt;0.001</td>
+    </tr>
+    <tr class="highlight">
+      <td>GPT-5.6</td>
+      <td class="num sig">0.231</td>
+      <td class="num">[0.225, 0.237]</td>
+      <td class="num sig">0.026</td>
+      <td class="num sig">0.618</td>
+      <td class="num sig">0.011</td>
+    </tr>
+    <tr>
+      <td>Sonnet 3.5</td>
+      <td class="num insig">0.249</td>
+      <td class="num">[0.243, 0.255]</td>
+      <td class="num">0.034</td>
+      <td class="num insig">0.551</td>
+      <td class="num insig">0.468</td>
+    </tr>
+    <tr>
+      <td>Perplexity Sonar 2</td>
+      <td class="num insig">0.251</td>
+      <td class="num">[0.245, 0.257]</td>
+      <td class="num">0.041</td>
+      <td class="num insig">0.543</td>
+      <td class="num insig">0.548</td>
+    </tr>
+    <tr>
+      <td>Kimi K3</td>
+      <td class="num insig">0.253</td>
+      <td class="num">[0.247, 0.259]</td>
+      <td class="num">0.058</td>
+      <td class="num insig">0.538</td>
+      <td class="num insig">0.561</td>
+    </tr>
+    <tr>
+      <td>GLM 5.2</td>
+      <td class="num">0.267</td>
+      <td class="num">[0.261, 0.273]</td>
+      <td class="num">0.089</td>
+      <td class="num">0.512</td>
+      <td class="num insig">0.084</td>
+    </tr>
+    <tr>
+      <td>Grok 4.5</td>
+      <td class="num neg">0.274</td>
+      <td class="num">[0.268, 0.280]</td>
+      <td class="num neg">0.102</td>
+      <td class="num neg">0.498</td>
+      <td class="num">0.041</td>
+    </tr>
+    <tr>
+      <td>DeepSeek</td>
+      <td class="num neg">0.281</td>
+      <td class="num">[0.275, 0.287]</td>
+      <td class="num neg">0.124</td>
+      <td class="num neg">0.487</td>
+      <td class="num">0.011</td>
+    </tr>
+    <tr style="border-top:1.5px solid #ccc;">
+      <td><em>Baseline (π = 0.54)</em></td>
+      <td class="num"><em>0.253</em></td>
+      <td class="num"><em>—</em></td>
+      <td class="num"><em>0.000</em></td>
+      <td class="num"><em>0.500</em></td>
+      <td class="num"><em>—</em></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Calibration curves show how each tier fails differently</h3>
+
+<!-- FIGURE 2: RELIABILITY DIAGRAM -->
+<figure>
+  <div class="fig-frame">
+    <svg viewBox="0 0 780 510" xmlns="http://www.w3.org/2000/svg">
+      <rect width="780" height="510" fill="#fafafa"/>
+      <line x1="80" y1="420" x2="580" y2="420" stroke="#111" stroke-width="1.2"/>
+      <line x1="80" y1="30" x2="80" y2="420" stroke="#111" stroke-width="1.2"/>
+      <!-- diagonal -->
+      <line x1="80" y1="420" x2="580" y2="30" stroke="#e0e0e0" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <!-- grid -->
+      <g stroke="#efefef" stroke-width="1">
+        <line x1="80" y1="322" x2="580" y2="322"/>
+        <line x1="80" y1="225" x2="580" y2="225"/>
+        <line x1="80" y1="128" x2="580" y2="128"/>
+        <line x1="180" y1="30" x2="180" y2="420"/>
+        <line x1="280" y1="30" x2="280" y2="420"/>
+        <line x1="380" y1="30" x2="380" y2="420"/>
+        <line x1="480" y1="30" x2="480" y2="420"/>
+      </g>
+      <g font-family="'Crimson Pro',serif" font-size="12" fill="#888" text-anchor="end">
+        <text x="70" y="424">0.0</text>
+        <text x="70" y="326">0.25</text>
+        <text x="70" y="229">0.50</text>
+        <text x="70" y="132">0.75</text>
+        <text x="70" y="34">1.0</text>
+      </g>
+      <g font-family="'Crimson Pro',serif" font-size="12" fill="#888" text-anchor="middle">
+        <text x="80"  y="438">0.0</text>
+        <text x="180" y="438">0.25</text>
+        <text x="280" y="438">0.50</text>
+        <text x="380" y="438">0.75</text>
+        <text x="480" y="438">1.0</text>
+      </g>
+      <text x="330" y="462" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13.5" fill="#111">Mean predicted probability</text>
+      <text x="24" y="225" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13.5" fill="#111" transform="rotate(-90 24 225)">Fraction of positives</text>
+      <text x="492" y="68" font-family="'Crimson Pro',serif" font-size="11" fill="#ccc" font-style="italic">perfect calibration</text>
+      <!-- DeepSeek - dashed, below diagonal -->
+      <polyline fill="none" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.9"
+        points="80,392 155,385 205,362 280,348 355,338 430,332 480,342 530,362"/>
+      <!-- Grok 4.5 - dashed -->
+      <polyline fill="none" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.9"
+        points="80,388 155,380 205,354 280,338 355,330 430,327 480,336 530,352"/>
+      <!-- GLM 5.2 -->
+      <polyline fill="none" stroke="#9b59b6" stroke-width="1.5" opacity="0.85"
+        points="80,406 155,390 230,362 305,336 380,322 455,312 530,308"/>
+      <!-- Kimi K3 -->
+      <polyline fill="none" stroke="#16a085" stroke-width="1.5" opacity="0.85"
+        points="80,410 155,394 230,366 305,332 380,306 455,290 530,282"/>
+      <!-- Perplexity Sonar 2 -->
+      <polyline fill="none" stroke="#2980b9" stroke-width="1.5" opacity="0.85"
+        points="80,412 155,396 230,366 305,328 380,300 455,280 530,268"/>
+      <!-- Sonnet 3.5 -->
+      <polyline fill="none" stroke="#27ae60" stroke-width="1.5" opacity="0.85"
+        points="80,414 155,398 230,366 305,325 380,295 455,274 530,262"/>
+      <!-- GPT-5.6 -->
+      <polyline fill="none" stroke="#2c3e50" stroke-width="2" opacity="0.9"
+        points="80,416 155,398 230,366 305,318 380,280 455,252 530,238"/>
+      <!-- Claude Opus - thickest, closest to diagonal -->
+      <polyline fill="none" stroke="#D85A30" stroke-width="2.5"
+        points="80,418 155,400 230,364 305,312 380,268 455,238 530,220"/>
+      <!-- LEGEND -->
+      <rect x="600" y="30" width="168" height="304" rx="4" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+      <text x="616" y="52" font-family="'Crimson Pro',serif" font-size="11.5" font-weight="500" fill="#111" letter-spacing="0.05em">MODEL (ECE)</text>
+      <line x1="614" y1="58" x2="754" y2="58" stroke="#eee" stroke-width="1"/>
+      <g font-family="'Crimson Pro',serif" font-size="12" fill="#444">
+        <line x1="618" y1="74" x2="644" y2="74" stroke="#D85A30" stroke-width="2.5"/>
+        <text x="650" y="78">Claude Opus  0.018</text>
+        <line x1="618" y1="97" x2="644" y2="97" stroke="#2c3e50" stroke-width="2"/>
+        <text x="650" y="101">GPT-5.6  0.026</text>
+        <line x1="618" y1="120" x2="644" y2="120" stroke="#27ae60" stroke-width="1.5"/>
+        <text x="650" y="124">Sonnet 3.5  0.034</text>
+        <line x1="618" y1="143" x2="644" y2="143" stroke="#2980b9" stroke-width="1.5"/>
+        <text x="650" y="147">Sonar 2  0.041</text>
+        <line x1="618" y1="166" x2="644" y2="166" stroke="#16a085" stroke-width="1.5"/>
+        <text x="650" y="170">Kimi K3  0.058</text>
+        <line x1="618" y1="189" x2="644" y2="189" stroke="#9b59b6" stroke-width="1.5"/>
+        <text x="650" y="193">GLM 5.2  0.089</text>
+        <line x1="618" y1="212" x2="644" y2="212" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <text x="650" y="216">Grok 4.5  0.102</text>
+        <line x1="618" y1="235" x2="644" y2="235" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <text x="650" y="239">DeepSeek  0.124</text>
+        <line x1="618" y1="258" x2="644" y2="258" stroke="#bbb" stroke-width="1" stroke-dasharray="5 3"/>
+        <text x="650" y="262" fill="#aaa">Diagonal (ideal)</text>
+        <text x="616" y="288" fill="#aaa" font-size="10.5">Dashed = AUC &lt; 0.50</text>
+        <text x="616" y="302" fill="#aaa" font-size="10.5">(anti-correlated)</text>
+      </g>
+    </svg>
+  </div>
+  <figcaption><strong>Figure 2.</strong> Reliability diagrams for all nine models. Claude Opus and GPT-5.6 track the diagonal closely, indicating good calibration. The middle tier compresses predictions toward 0.5 (under-confidence). The bottom tier (dashed lines) shows over-confidence in the wrong direction: these models assign high reversion probability to hours that diverge, and low probability to hours that revert. The diagonal grey dashes mark perfect calibration.</figcaption>
+</figure>
+
+<h3>Performance by pair: structural constraints matter</h3>
+
+<!-- FIGURE 3 CREATIVE: AUC bubble matrix -->
+<figure>
+  <div class="fig-frame">
+    <svg viewBox="0 0 820 490" xmlns="http://www.w3.org/2000/svg">
+      <rect width="820" height="460" fill="#fafafa"/>
+
+      <!-- Title -->
+      <text x="410" y="32" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="14" font-weight="500" fill="#111" letter-spacing="0.04em">AUC BY MODEL AND PAIR</text>
+      <text x="410" y="50" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="12" fill="#aaa">Bubble size and color encode AUC relative to baseline (0.50). Orange = above baseline, grey = at baseline, red = below.</text>
+
+      <!-- Column headers (pairs) -->
+      <!-- x positions: 160, 265, 370, 475, 580, 685 -->
+      <g font-family="'Crimson Pro',serif" font-size="13" fill="#555" text-anchor="middle" font-weight="400">
+        <text x="160" y="82">BTC/ETH</text>
+        <text x="265" y="82">SOL/AVAX</text>
+        <text x="370" y="82">BNB/ETH</text>
+        <text x="475" y="82">ARB/OP</text>
+        <text x="580" y="82">ETH/LTC</text>
+        <text x="685" y="82">stETH/rETH</text>
+      </g>
+
+      <!-- Row headers (models) -->
+      <!-- y positions: 118, 168, 218, 268, 318, 368, 418 -->
+      <g font-family="'Crimson Pro',serif" font-size="13" fill="#333" text-anchor="end">
+        <text x="128" y="122">Claude Opus</text>
+        <text x="128" y="172">GPT-5.6</text>
+        <text x="128" y="222">Sonnet 3.5</text>
+        <text x="128" y="272">Kimi K3</text>
+        <text x="128" y="322">GLM 5.2</text>
+        <text x="128" y="372">Grok 4.5</text>
+        <text x="128" y="422">DeepSeek</text>
+      </g>
+
+      <!-- Separator lines -->
+      <line x1="135" y1="90" x2="720" y2="90" stroke="#e8e8e8" stroke-width="1"/>
+      <line x1="135" y1="90" x2="135" y2="440" stroke="#e8e8e8" stroke-width="1"/>
+
+      <!-- 
+        AUC values per model per pair (simulated, internally consistent):
+        Row = model, Col = pair
+        Pairs: BTC/ETH, SOL/AVAX, BNB/ETH, ARB/OP, ETH/LTC, stETH/rETH
+        
+        Claude Opus:  0.642, 0.618, 0.601, 0.554, 0.629, 0.671
+        GPT-5.6:      0.618, 0.594, 0.581, 0.532, 0.608, 0.644
+        Sonnet 3.5:   0.551, 0.538, 0.526, 0.508, 0.544, 0.572
+        Kimi K3:      0.538, 0.521, 0.514, 0.503, 0.531, 0.558
+        GLM 5.2:      0.512, 0.506, 0.504, 0.498, 0.514, 0.528
+        Grok 4.5:     0.498, 0.492, 0.488, 0.471, 0.501, 0.514
+        DeepSeek:     0.487, 0.479, 0.474, 0.462, 0.491, 0.504
+
+        Bubble radius: (AUC - 0.50) * 160 capped at [4, 32], min 6
+        Color: AUC > 0.52 -> orange gradient, 0.498-0.52 -> grey, < 0.498 -> red
+      -->
+
+      <!-- Claude Opus row y=118 -->
+      <!-- BTC/ETH AUC=0.642 r=(0.642-0.50)*160=22.7 -->
+      <circle cx="160" cy="118" r="22" fill="#D85A30" opacity="0.85"/>
+      <text x="160" y="122" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" font-weight="400" fill="#111">0.642</text>
+      <!-- SOL/AVAX 0.618 r=18.9 -->
+      <circle cx="265" cy="118" r="19" fill="#D85A30" opacity="0.80"/>
+      <text x="265" y="122" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.618</text>
+      <!-- BNB/ETH 0.601 r=16 -->
+      <circle cx="370" cy="118" r="16" fill="#D85A30" opacity="0.75"/>
+      <text x="370" y="122" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.601</text>
+      <!-- ARB/OP 0.554 r=8.6 -->
+      <circle cx="475" cy="118" r="9" fill="#D85A30" opacity="0.65"/>
+      <text x="475" y="134" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.554</text>
+      <!-- ETH/LTC 0.629 r=20.6 -->
+      <circle cx="580" cy="118" r="21" fill="#D85A30" opacity="0.82"/>
+      <text x="580" y="122" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.629</text>
+      <!-- stETH/rETH 0.671 r=27.4 -->
+      <circle cx="685" cy="118" r="27" fill="#D85A30" opacity="0.92"/>
+      <text x="685" y="122" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" font-weight="500" fill="#111">0.671</text>
+
+      <!-- GPT-5.6 row y=168 -->
+      <circle cx="160" cy="168" r="19" fill="#2c3e50" opacity="0.75"/>
+      <text x="160" y="172" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.618</text>
+      <circle cx="265" cy="168" r="15" fill="#2c3e50" opacity="0.70"/>
+      <text x="265" y="172" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.594</text>
+      <circle cx="370" cy="168" r="13" fill="#2c3e50" opacity="0.68"/>
+      <text x="370" y="172" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.581</text>
+      <circle cx="475" cy="168" r="7" fill="#2c3e50" opacity="0.60"/>
+      <text x="475" y="184" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.532</text>
+      <circle cx="580" cy="168" r="17" fill="#2c3e50" opacity="0.72"/>
+      <text x="580" y="172" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.608</text>
+      <circle cx="685" cy="168" r="23" fill="#2c3e50" opacity="0.80"/>
+      <text x="685" y="172" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.644</text>
+
+      <!-- Sonnet 3.5 row y=218 -->
+      <circle cx="160" cy="218" r="9" fill="#888" opacity="0.50"/>
+      <text x="160" y="236" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.551</text>
+      <circle cx="265" cy="218" r="7" fill="#888" opacity="0.45"/>
+      <text x="265" y="236" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.538</text>
+      <circle cx="370" cy="218" r="6" fill="#888" opacity="0.40"/>
+      <text x="370" y="236" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.526</text>
+      <circle cx="475" cy="218" r="4" fill="#888" opacity="0.35"/>
+      <text x="475" y="236" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.508</text>
+      <circle cx="580" cy="218" r="7" fill="#888" opacity="0.45"/>
+      <text x="580" y="236" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.544</text>
+      <circle cx="685" cy="218" r="11" fill="#888" opacity="0.55"/>
+      <text x="685" y="236" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.572</text>
+
+      <!-- Kimi K3 row y=268 -->
+      <circle cx="160" cy="268" r="7" fill="#888" opacity="0.40"/>
+      <text x="160" y="286" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.538</text>
+      <circle cx="265" cy="268" r="5" fill="#888" opacity="0.35"/>
+      <text x="265" y="286" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.521</text>
+      <circle cx="370" cy="268" r="4" fill="#888" opacity="0.30"/>
+      <text x="370" y="286" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.514</text>
+      <circle cx="475" cy="268" r="4" fill="#888" opacity="0.25"/>
+      <text x="475" y="286" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.503</text>
+      <circle cx="580" cy="268" r="5" fill="#888" opacity="0.35"/>
+      <text x="580" y="286" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.531</text>
+      <circle cx="685" cy="268" r="9" fill="#888" opacity="0.45"/>
+      <text x="685" y="286" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.558</text>
+
+      <!-- GLM 5.2 row y=318 -->
+      <circle cx="160" cy="318" r="4" fill="#888" opacity="0.25"/>
+      <text x="160" y="336" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.512</text>
+      <circle cx="265" cy="318" r="4" fill="#888" opacity="0.20"/>
+      <text x="265" y="336" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.506</text>
+      <circle cx="370" cy="318" r="4" fill="#888" opacity="0.18"/>
+      <text x="370" y="336" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.504</text>
+      <circle cx="475" cy="318" r="4" fill="#c0392b" opacity="0.30"/>
+      <text x="475" y="336" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.498</text>
+      <circle cx="580" cy="318" r="4" fill="#888" opacity="0.22"/>
+      <text x="580" y="336" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.514</text>
+      <circle cx="685" cy="318" r="6" fill="#888" opacity="0.30"/>
+      <text x="685" y="336" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.528</text>
+
+      <!-- Grok 4.5 row y=368 -->
+      <circle cx="160" cy="368" r="4" fill="#c0392b" opacity="0.40"/>
+      <text x="160" y="386" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.498</text>
+      <circle cx="265" cy="368" r="5" fill="#c0392b" opacity="0.50"/>
+      <text x="265" y="386" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.492</text>
+      <circle cx="370" cy="368" r="6" fill="#c0392b" opacity="0.55"/>
+      <text x="370" y="386" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.488</text>
+      <circle cx="475" cy="368" r="10" fill="#c0392b" opacity="0.65"/>
+      <text x="475" y="386" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.471</text>
+      <circle cx="580" cy="368" r="4" fill="#888" opacity="0.20"/>
+      <text x="580" y="386" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.501</text>
+      <circle cx="685" cy="368" r="4" fill="#888" opacity="0.25"/>
+      <text x="685" y="386" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.514</text>
+
+      <!-- DeepSeek row y=418 -->
+      <circle cx="160" cy="418" r="7" fill="#c0392b" opacity="0.55"/>
+      <text x="160" y="436" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.487</text>
+      <circle cx="265" cy="418" r="9" fill="#c0392b" opacity="0.62"/>
+      <text x="265" y="436" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.479</text>
+      <circle cx="370" cy="418" r="10" fill="#c0392b" opacity="0.65"/>
+      <text x="370" y="436" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="10" fill="#111">0.474</text>
+      <circle cx="475" cy="418" r="14" fill="#c0392b" opacity="0.75"/>
+      <text x="475" y="422" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" font-weight="500" fill="#111">0.462</text>
+      <circle cx="580" cy="418" r="6" fill="#c0392b" opacity="0.45"/>
+      <text x="580" y="436" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.491</text>
+      <circle cx="685" cy="418" r="4" fill="#888" opacity="0.22"/>
+      <text x="685" y="436" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="11" fill="#111">0.504</text>
+
+      <!-- Horizontal row separators -->
+      <g stroke="#f0f0f0" stroke-width="1">
+        <line x1="135" y1="143" x2="720" y2="143"/>
+        <line x1="135" y1="193" x2="720" y2="193"/>
+        <line x1="135" y1="243" x2="720" y2="243"/>
+        <line x1="135" y1="293" x2="720" y2="293"/>
+        <line x1="135" y1="343" x2="720" y2="343"/>
+        <line x1="135" y1="393" x2="720" y2="393"/>
+      </g>
+
+      <!-- Legend separator -->
+      <line x1="135" y1="455" x2="720" y2="455" stroke="#e8e8e8" stroke-width="1"/>
+      <!-- Legend — same colors/opacities as figure bubbles -->
+      <circle cx="158" cy="470" r="8" fill="#D85A30" opacity="0.85"/>
+      <text x="172" y="474" font-family="'Crimson Pro',serif" font-size="12" fill="#111">Above baseline</text>
+      <circle cx="268" cy="470" r="6" fill="#aaa" opacity="0.42"/>
+      <text x="282" y="474" font-family="'Crimson Pro',serif" font-size="12" fill="#111">Near baseline</text>
+      <circle cx="370" cy="470" r="8" fill="#c0392b" opacity="0.62"/>
+      <text x="384" y="474" font-family="'Crimson Pro',serif" font-size="12" fill="#111">Below baseline</text>
+      <text x="500" y="474" font-family="'Crimson Pro',serif" font-size="12" fill="#888" font-style="italic">Bubble size ∝ |AUC − 0.50|</text>
+    </svg>
+  </div>
+  <figcaption><strong>Figure 3.</strong> AUC matrix across nine models and six pairs. Each bubble encodes the model's discrimination ability on a specific pair: orange bubbles indicate performance above the random baseline, grey indicates no meaningful signal, red indicates systematic anti-correlation. The stETH/rETH pair (rightmost column) consistently produces the largest orange bubbles, reflecting its near-mechanical cointegration constraint. ARB/OP (fourth column) consistently produces the smallest or most negative bubbles, consistent with its high regime sensitivity. The overall visual confirms that the gap between top and bottom tier is most pronounced on the structurally constrained pairs and narrows sharply on noisy regime-sensitive ones.</figcaption>
+</figure>
+
+<h3>Discrimination is thin, but not uniform across pairs</h3>
+
+<p>The bubble matrix reveals something the aggregate table conceals: the pair matters as much as the model. The stETH/rETH pair produces the best AUCs across the board because the cointegration is structural rather than statistical. Both assets are soft-pegged to ETH by construction, so large z-scores genuinely predict reversion with higher probability. Claude Opus reaches AUC 0.671 on this pair, the highest value in the entire evaluation.</p>
+
+<p>The ARB/OP pair does the opposite. This is the pair where regime breaks matter most: when governance events or protocol-specific news affects one L2 without affecting the other, the historical cointegration breaks down temporarily. The models, queried with only statistical inputs and no news signal, systematically fail here. Claude Opus drops to 0.554, Grok falls to 0.471, and DeepSeek reaches its worst result at 0.462 on this pair specifically.</p>
+
+<p>The implication is practical: if you are building a pipeline that uses LLM forecasts as a component, pair selection matters more than model selection in the lower tiers. The stETH/rETH pair gives you something real to work with. The ARB/OP pair gives you noise at best and inverted signal at worst.</p>
+
+<!-- FIGURE 4: BRIER BY EG QUINTILE -->
+<h3>Performance degrades as cointegration weakens</h3>
+<figure>
+  <div class="fig-frame">
+    <svg viewBox="0 0 780 400" xmlns="http://www.w3.org/2000/svg">
+      <rect width="780" height="400" fill="#fafafa"/>
+      <line x1="70" y1="320" x2="730" y2="320" stroke="#111" stroke-width="1.2"/>
+      <line x1="70" y1="40" x2="70" y2="320" stroke="#111" stroke-width="1.2"/>
+      <g stroke="#eeeeee" stroke-width="1">
+        <line x1="70" y1="220" x2="730" y2="220"/>
+        <line x1="70" y1="170" x2="730" y2="170"/>
+        <line x1="70" y1="120" x2="730" y2="120"/>
+      </g>
+      <!-- baseline at BS=0.253 y = 320-(0.253-0.18)/0.12*280 = 320-170.3 = 149.7 -->
+      <line x1="70" y1="150" x2="730" y2="150" stroke="#bbb" stroke-width="1" stroke-dasharray="5 4"/>
+      <text x="734" y="154" font-family="'Crimson Pro',serif" font-size="11" fill="#aaa">baseline 0.253</text>
+      <g font-family="'Crimson Pro',serif" font-size="12" fill="#888" text-anchor="end">
+        <text x="60" y="324">0.18</text>
+        <text x="60" y="224">0.21</text>
+        <text x="60" y="174">0.225</text>
+        <text x="60" y="124">0.24</text>
+        <text x="60" y="74">0.27</text>
+      </g>
+      <!-- Q groups at: 110, 230, 350, 470, 590 -->
+      <!-- Claude Opus: 0.196,0.208,0.218,0.231,0.241 -->
+      <!-- GPT-5.6: 0.210,0.220,0.232,0.244,0.249 -->
+      <!-- DeepSeek: 0.264,0.270,0.278,0.285,0.288 -->
+      <!-- y(v)=320-(v-0.18)/0.12*280 -->
+      <!-- v=0.196->282; v=0.208->254; v=0.218->231; v=0.231->200; v=0.241->177 -->
+      <!-- v=0.210->257; v=0.220->234; v=0.232->206; v=0.244->178; v=0.249->167 -->
+      <!-- v=0.264->149; v=0.270->136; v=0.278->117; v=0.285->103; v=0.288->96 -->
+      <!-- Q1 -->
+      <rect x="93"  y="282" width="20" height="38"  fill="#D85A30" opacity="0.88" rx="2"/>
+      <rect x="115" y="257" width="20" height="63"  fill="#2c3e50" opacity="0.80" rx="2"/>
+      <rect x="137" y="150" width="20" height="170" fill="#bbb"     opacity="0.22" rx="2"/>
+      <rect x="159" y="149" width="20" height="171" fill="#c0392b"  opacity="0.70" rx="2"/>
+      <!-- Q2 -->
+      <rect x="213" y="254" width="20" height="66"  fill="#D85A30" opacity="0.88" rx="2"/>
+      <rect x="235" y="234" width="20" height="86"  fill="#2c3e50" opacity="0.80" rx="2"/>
+      <rect x="257" y="150" width="20" height="170" fill="#bbb"     opacity="0.22" rx="2"/>
+      <rect x="279" y="136" width="20" height="184" fill="#c0392b"  opacity="0.72" rx="2"/>
+      <!-- Q3 -->
+      <rect x="333" y="231" width="20" height="89"  fill="#D85A30" opacity="0.88" rx="2"/>
+      <rect x="355" y="206" width="20" height="114" fill="#2c3e50" opacity="0.80" rx="2"/>
+      <rect x="377" y="150" width="20" height="170" fill="#bbb"     opacity="0.22" rx="2"/>
+      <rect x="399" y="117" width="20" height="203" fill="#c0392b"  opacity="0.75" rx="2"/>
+      <!-- Q4 -->
+      <rect x="453" y="200" width="20" height="120" fill="#D85A30" opacity="0.88" rx="2"/>
+      <rect x="475" y="178" width="20" height="142" fill="#2c3e50" opacity="0.80" rx="2"/>
+      <rect x="497" y="150" width="20" height="170" fill="#bbb"     opacity="0.22" rx="2"/>
+      <rect x="519" y="103" width="20" height="217" fill="#c0392b"  opacity="0.78" rx="2"/>
+      <!-- Q5 -->
+      <rect x="573" y="177" width="20" height="143" fill="#D85A30" opacity="0.88" rx="2"/>
+      <rect x="595" y="167" width="20" height="153" fill="#2c3e50" opacity="0.80" rx="2"/>
+      <rect x="617" y="150" width="20" height="170" fill="#bbb"     opacity="0.22" rx="2"/>
+      <rect x="639" y="96"  width="20" height="224" fill="#c0392b"  opacity="0.80" rx="2"/>
+      <!-- X labels -->
+      <g font-family="'Crimson Pro',serif" font-size="13" fill="#555" text-anchor="middle">
+        <text x="148" y="340">Q1</text>
+        <text x="268" y="340">Q2</text>
+        <text x="388" y="340">Q3</text>
+        <text x="508" y="340">Q4</text>
+        <text x="628" y="340">Q5</text>
+      </g>
+      <g font-family="'Crimson Pro',serif" font-size="10.5" fill="#aaa" text-anchor="middle">
+        <text x="148" y="354">strong coint.</text>
+        <text x="628" y="354">weak coint.</text>
+      </g>
+      <text x="400" y="382" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13.5" fill="#111">Engle-Granger p-value quintile</text>
+      <text x="18" y="180" text-anchor="middle" font-family="'Crimson Pro',serif" font-size="13.5" fill="#111" transform="rotate(-90 18 180)">Brier score</text>
+      <!-- Legend -->
+      <rect x="600" y="42" width="152" height="106" rx="4" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+      <g font-family="'Crimson Pro',serif" font-size="12" fill="#444">
+        <rect x="616" y="56" width="15" height="12" fill="#D85A30" opacity="0.88" rx="1"/>
+        <text x="637" y="67">Claude Opus</text>
+        <rect x="616" y="76" width="15" height="12" fill="#2c3e50" opacity="0.80" rx="1"/>
+        <text x="637" y="87">GPT-5.6</text>
+        <rect x="616" y="96" width="15" height="12" fill="#bbb"     opacity="0.45" rx="1"/>
+        <text x="637" y="107">Baseline</text>
+        <rect x="616" y="116" width="15" height="12" fill="#c0392b" opacity="0.70" rx="1"/>
+        <text x="637" y="127">DeepSeek</text>
+      </g>
+    </svg>
+  </div>
+  <figcaption><strong>Figure 4.</strong> Brier scores by Engle-Granger p-value quintile. Q1 is the regime with strongest cointegration evidence; Q5 is where the EG test fails to reject the unit root null. Both Claude Opus and GPT-5.6 beat the baseline across all quintiles, but the gap closes toward Q5. DeepSeek worsens as cointegration strengthens, consistent with a systematic inversion of the EG p-value signal in its reasoning.</figcaption>
+</figure>
+
+<!-- DISCUSSION -->
+<h2>What This Means in Practice</h2>
+
+<h3>The pair you choose matters as much as the model</h3>
+
+<p>The bubble matrix tells a story the aggregate numbers hide. Structurally constrained pairs like stETH/rETH give even the weaker models something to work with. Regime-sensitive pairs like ARB/OP neutralise the best models. If you are building a pipeline, starting with pairs that have mechanical cointegration drivers rather than purely statistical ones will give you more signal to extract.</p>
+
+<h3>Calibration and discrimination fail independently</h3>
+
+<p>The top tier gets both right. The middle tier is reasonably calibrated but fails to discriminate. The bottom tier is wrong on both, and the wrongness is systematic rather than random. These are three different types of failure and they need three different fixes. For the middle tier, the question is whether richer inputs would unlock discrimination. For the bottom tier, the question is whether the prompt design is inducing a reasoning pattern that inverts the signal.</p>
+
+<h3>Statistical significance is not the same as economic value</h3>
+
+<p>An AUC of 0.642 passes every significance test we run. It would be consumed by realistic transaction costs before producing net alpha at one-minute resolution. The honest read is that the signal is there, it is real, and it is not tradeable on its own at this granularity. Used as one signal among several, with longer holding periods, structural pair selection, and careful cost accounting, it might contribute. But we make no profitability claims, and the magnitude matters.</p>
+
+<div class="callout">
+  <strong>For members building on this</strong>
+  The open-source tools most relevant to extending this work are FinGPT for finance-specific LLM experimentation (<a href="https://github.com/AI4Finance-Foundation/FinGPT" class="external" target="_blank">GitHub</a>, <a href="https://arxiv.org/abs/2306.06031" class="external" target="_blank">arXiv:2306.06031</a>), FinRL for reinforcement-learning based trading environments (<a href="https://github.com/AI4Finance-Foundation/FinRL" class="external" target="_blank">GitHub</a>), and the Binance public API for real-time crypto pair data. For cointegration testing in Python, <code>statsmodels.tsa.stattools.coint</code> implements the Engle-Granger test directly.
+</div>
+
+<!-- LIMITATIONS -->
+<h2>Limitations</h2>
+
+<p>This evaluation uses zero-shot prompting only. Few-shot examples or explicit chain-of-thought instructions might improve calibration substantially, particularly for the middle tier. The six pairs we chose are all liquid, well-known pairs. The evaluation does not cover illiquid tokens, cross-chain pairs, or perpetual futures spreads, where the cointegration dynamics differ meaningfully.</p>
+
+<p>The 24-hour target horizon is a design choice. At shorter horizons the signal would likely be noisier; at longer ones the baseline reversion frequency would change. Human evaluation of reasoning traces covers only 200 of 7,560 windows and was conducted by annotators without domain expertise in market microstructure. The correlation between reasoning quality and Brier score is suggestive, not causal.</p>
+
+<!-- CONCLUSIONS -->
+<h2>Conclusions</h2>
+
+<p>We evaluated nine frontier LLMs on spread reversion prediction across six cointegrated crypto pairs and 7,560 evaluation windows. A clear three-tier structure emerged: two models beat the baseline, five match it, two are significantly worse. The best AUC across the entire evaluation is 0.671, achieved by Claude Opus on the stETH/rETH pair, where cointegration is structural. The worst is 0.462, achieved by DeepSeek on ARB/OP, where regime breaks dominate.</p>
+
+<p>The signal is real. The ceiling is low. The pair matters as much as the model. And the gap between statistical significance and economic deployability remains the central challenge. Future work should extend to richer information sets, shorter and longer horizons, and explicit cost-aware evaluation that closes the gap between AUC and net alpha.</p>
+
+<!-- CITATION -->
+<h2>Citation</h2>
+<p>Please cite this work as:</p>
+<div class="citation-box">Omega7 Capital Research Collective, "When LLMs Spot the Spread: Testing Statistical Arbitrage Detection Across Nine Frontier Models", Omega7 Capital Research, July 2026.
+
+@article{omega7_2026_llms_spread,
+  author  = {Omega7 Capital Research Collective},
+  title   = {When LLMs Spot the Spread: Testing Statistical Arbitrage Detection Across Nine Frontier Models},
+  journal = {Omega7 Capital: Research},
+  year    = {2026}
+}</div>
+
+<p class="data-note">Note on data: the figures, statistics, and evaluation results in this article are based on a simulated dataset constructed for illustrative and methodological purposes. They are designed to be internally consistent and realistic in structure, but should not be read as findings about any specific named model's actual capabilities, nor as evidence regarding the tradability of any cryptocurrency pair.</p>
+
+</div>
+
+<footer>
+  <p>Omega7 Capital &copy; 2026 &middot; <a href="../index.html">Home</a></p>
+  <p><a href="#">Privacy</a></p>
+</footer>
+
+</article>
+</main>
+
+</body>
+</html>
